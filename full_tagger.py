@@ -43,11 +43,19 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten=True)
                 newname = re.sub(r'^(\d)+',"",newname,count=0,flags=re.I).strip()
                 newname = re.sub(current_artist,"",newname,count=0,flags=re.I).strip()
                 prevname = newname
-                while True:                
+                while True:
+                    matches = 0                
                     newname = re.sub(r'^-',"",prevname,count=0,flags=re.I).strip()
+                    if prevname == newname:
+                        matches += 1
                     newname = re.sub(r'^\.',"",prevname,count=0,flags=re.I).strip()
                     if prevname == newname:
+                        matches += 1
+                    
+                    if matches == 2:
+                        # means that song name did not change after attempting to remove leading dots and hyphens
                         break
+
                     prevname = newname
                 
                 # Now newname is final title name with .mp3 on the end
