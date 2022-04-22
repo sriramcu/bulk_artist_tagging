@@ -16,7 +16,7 @@ def index_2d(myList, v):
 
 current_artist = ""
 # If shorten is True then remove artist names and leading numbers, spaces and hyphens from the title of a song
-def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten=True):
+def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_title=True):
     os.chdir(folder_abs_path)
     for item in os.listdir('.'):
         if item.endswith("txt"):
@@ -38,7 +38,7 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten=True)
                 print(cmd)
                 os.system(cmd)
             
-            if shorten:
+            if shorten_song_title:
                 newname = re.sub(current_artist,"",item,count=0,flags=re.I).strip()
                 newname = re.sub(r'^(\d)+',"",newname,count=0,flags=re.I).strip()
                 newname = re.sub(current_artist,"",newname,count=0,flags=re.I).strip()
@@ -76,6 +76,18 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten=True)
 
 
 def main():
+    if len(sys.argv)<2:
+        print(f"Usage: python3 {__file__} root_music_directory tag_genres shorten_song_title")
+        sys.exit(-1)
+    
+    tag_genres = 1
+    if len(sys.argv) == 3:
+        tag_genres = int(sys.argv[2])
+    
+    shorten_song_title = 0
+    if len(sys.argv) == 4:
+        shorten_song_title = int(sys.argv[3])
+
     original_dir = os.path.abspath(os.getcwd())
     root_dir_path = os.path.abspath(sys.argv[1])
     list_of_artist_folders = os.listdir(root_dir_path)
@@ -85,7 +97,7 @@ def main():
             continue
         global current_artist
         current_artist = artist
-        tag_full_folder(os.path.abspath(os.path.join(root_dir_path, artist)), original_dir, tag_genres=True, shorten=True)
+        tag_full_folder(os.path.abspath(os.path.join(root_dir_path, artist)), original_dir, tag_genres=tag_genres, shorten_song_title=shorten_song_title)
     
 if __name__ == "__main__":
     main()
