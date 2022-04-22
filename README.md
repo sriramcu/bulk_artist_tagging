@@ -7,7 +7,7 @@ Suppose the script is set to run on a root directory named "Music" and we need t
 1. Create a CSV file called `genres.csv` where each line of the CSV is of the format `Genre, Artist 1, Artist 2.....`  
 
 2. In the `tag_full_folder()` function call in the `main()` function in the `full_tagger.py`, set the parameter `tag_genres` to True or False based on whether you want to tag your music with the genres described in `genres.csv` (even if this is set to False, at the very list an empty `genres.csv` file must be present in the directory for the program to function). 
-3. In the same function call, set the `shorten` parameter to True if you want to remove the Artist's name from the song as well as stripping leading dashes, dots, underscores and numbers from the song's title. The song's title tag and the name of the file will be modified  accordingly. Set to False to disable this behaviour.
+3. In the same function call, set the `shorten` parameter to True if you want to remove the Artist's name from the song as well as stripping leading dashes, dots, underscores and numbers from the song's title. The song's title tag and the name of the file will be modified  accordingly. Set to False to disable this behaviour. Hello WOrld.
 
 ## Usage  
 `python3 full_tagger.py <absolute_path_to_music_directory>`  
