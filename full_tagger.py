@@ -2,6 +2,7 @@ import os
 import sys
 import csv
 import re
+import time
 
 datafile = "genres.csv"
 csv_data = list(csv.reader(open(datafile)))
@@ -100,4 +101,7 @@ def main():
         tag_full_folder(os.path.abspath(os.path.join(root_dir_path, artist)), original_dir, tag_genres=tag_genres, shorten_song_title=shorten_song_title)
     
 if __name__ == "__main__":
+    start_time = time.time()
     main()
+    time_elapsed = time.time() - start_time
+    print(f"Time taken for songs tagging = {time_elapsed//60} minutes {round((time_elapsed%60)/60,2)} seconds")
