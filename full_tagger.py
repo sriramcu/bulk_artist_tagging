@@ -1,8 +1,8 @@
 import os
-import sys
 import csv
 import re
 import time
+import argparse
 
 datafile = "genres.csv"
 csv_data = list(csv.reader(open(datafile)))
@@ -18,6 +18,7 @@ def index_2d(myList, v):
 current_artist = ""
 # If shorten is True then remove artist names and leading numbers, spaces and hyphens from the title of a song
 def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_title=True):
+
     os.chdir(folder_abs_path)
     for item in os.listdir('.'):
         if item.endswith("txt"):
@@ -70,27 +71,26 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_
 
 
         elif os.path.isdir(item):
-            tag_full_folder(os.path.join(folder_abs_path,item),folder_abs_path)
+            tag_full_folder(os.path.join(folder_abs_path,item),folder_abs_path, tag_genres=tag_genres, shorten_song_title=shorten_song_title)
             
 
     os.chdir(original_dir)
 
 
 def main():
-    if len(sys.argv)<2:
-        print(f"Usage: python3 {__file__} root_music_directory tag_genres shorten_song_title")
-        sys.exit(-1)
-    
-    tag_genres = 1
-    if len(sys.argv) == 3:
-        tag_genres = int(sys.argv[2])
-    
-    shorten_song_title = 0
-    if len(sys.argv) == 4:
-        shorten_song_title = int(sys.argv[3])
 
+    ap = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
+    ap.add_argument("-root_dir","--root_music_directory", type=str, required=True, help=" ")
+    ap.add_argument("-tag_genres", type=int, choices=[0,1],required=True, help=" ")
+    ap.add_argument("-shorten_song_title", type=int, choices=[0,1], default=0, help=" ")
+    args = vars(ap.parse_args())
+
+    tag_genres = int(args["tag_genres"])    
+    
+    shorten_song_title = int(args["shorten_song_title"])
+    
     original_dir = os.path.abspath(os.getcwd())
-    root_dir_path = os.path.abspath(sys.argv[1])
+    root_dir_path = os.path.abspath(args["root_dir"])
     list_of_artist_folders = os.listdir(root_dir_path)
     for artist in list_of_artist_folders:
         if artist.endswith("txt"):
