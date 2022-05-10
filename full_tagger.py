@@ -90,7 +90,7 @@ def main():
     shorten_song_title = int(args["shorten_song_title"])
     
     original_dir = os.path.abspath(os.getcwd())
-    root_dir_path = os.path.abspath(args["root_dir"])
+    root_dir_path = os.path.abspath(args["root_music_directory"])
     list_of_artist_folders = os.listdir(root_dir_path)
     for artist in list_of_artist_folders:
         if artist.endswith("txt"):
