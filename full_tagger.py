@@ -4,9 +4,13 @@ import re
 import time
 import argparse
 import warnings
+import mutagen
+from mutagen.easyid3 import EasyID3
 
 datafile = "genres.csv"
 csv_data = list(csv.reader(open(datafile)))
+tagged_count = 0
+last_processed_item = ""
 
 def index_2d(myList, v):
     # Finds index of element whose value is v in a 2d list myList, all comparisons are case insensitive; leading/trailing spaces stripped
@@ -28,9 +32,22 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_
             continue
         elif os.path.isfile(item):
             # item is in current working directory, so no need to determine the absolute path
-            cmd = f'mid3v2 -a "{current_artist}" "{item}"'
-            print(cmd)
-            os.system(cmd)
+            # cmd = f'mid3v2 -a "{current_artist}" "{item}"'
+            # print(cmd)
+            # os.system(cmd)
+            global last_processed_item
+            last_processed_item = item
+            try:
+                audio = EasyID3(item)
+            except mutagen.id3.ID3NoHeaderError:
+                audio = mutagen.File(item, easy=True)
+                audio.add_tags()                
+
+            audio["artist"] = current_artist
+            audio.save()
+            global tagged_count
+            tagged_count += 1
+            print(f"{tagged_count}. {item} tagged")
             if tag_genres:
                 genre_2d_index = index_2d(csv_data, current_artist)
                 if genre_2d_index == None:
@@ -38,9 +55,12 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_
                     continue
                 genre_index = genre_2d_index[0]
                 genre = csv_data[genre_index][0]
-                cmd = f'mid3v2 -g "{genre}" "{item}"' 
-                print(cmd)
-                os.system(cmd)
+                # cmd = f'mid3v2 -g "{genre}" "{item}"' 
+                # print(cmd)
+                # os.system(cmd)
+                audio = EasyID3(item)
+                audio["genre"] = genre
+                audio.save()
             
             if shorten_song_title:
                 newname = re.sub(current_artist,"",item,count=0,flags=re.I).strip()
@@ -66,9 +86,12 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_
                 newname_list = newname.split(".")
                 del newname_list[-1]
                 newname_title = ''.join(newname_list)
-                cmd = f'mid3v2 -t "{newname_title}" "{item}"'
-                print(cmd)
-                os.system(cmd)
+                # cmd = f'mid3v2 -t "{newname_title}" "{item}"'
+                # print(cmd)
+                # os.system(cmd)
+                audio = EasyID3(item)
+                audio["title"] = newname_title
+                audio.save()
                 os.rename(item,newname)
 
 
@@ -82,9 +105,9 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_
 def main():
 
     ap = argparse.ArgumentParser(formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-    ap.add_argument("-d", "--root_music_directory", type=str, required=True, help=" ")
-    ap.add_argument("-tg", "--tag_genres", type=int, choices=[0,1],default=1, help=" ")
-    ap.add_argument("-sh", "--shorten_song_title", type=int, choices=[0,1], default=0, help=" ")
+    ap.add_argument("-d", "--root_music_directory", type=str, required=True, help="_")
+    ap.add_argument("-tg", "--tag_genres", type=int, choices=[0,1],default=1, help="_")
+    ap.add_argument("-sh", "--shorten_song_title", type=int, choices=[0,1], default=0, help="_")
     args = vars(ap.parse_args())
 
     tag_genres = int(args["tag_genres"])    
@@ -106,6 +129,33 @@ def main():
 
 if __name__ == "__main__":
     start_time = time.time()
-    main()
-    time_elapsed = time.time() - start_time
-    print(f"Time taken for songs tagging = {time_elapsed//60} minutes {round((time_elapsed%60)/60,2)} seconds")
+    try:
+        main()
+    except Exception:
+        print(f"Error occurred while processing {last_processed_item}")
+
+        if os.name == "nt":
+            # this is to handle exceptions concerning ID3 headers not being recognised in Windows
+            from win10toast import ToastNotifier
+            toast = ToastNotifier()
+            toast.show_toast(
+                "Python Program Error",
+                f"Not able to process a certain song {last_processed_item}",
+                duration = 20,
+                icon_path = "icon.ico",
+                threaded = True,
+            )
+
+    else:
+        time_elapsed = time.time() - start_time
+        print(f"Time taken for songs tagging = {time_elapsed//60} minutes {round((time_elapsed%60)/60,2)} seconds")
+
+
+
+"""
+Run the following commands in an interactive shell to get current ID3 tags
+from mutagen.easyid3 import EasyID3
+from mutagen.mp3 import MP3
+audio = MP3("myfile.mp3", ID3=EasyID3)
+audio
+"""
