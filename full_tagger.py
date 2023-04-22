@@ -7,7 +7,7 @@ import warnings
 import mutagen
 from mutagen.easyid3 import EasyID3
 
-datafile = "genres.csv"
+datafile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "genres.csv")
 csv_data = list(csv.reader(open(datafile)))
 tagged_count = 0
 last_processed_item = ""
