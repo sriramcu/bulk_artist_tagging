@@ -27,7 +27,7 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_
 
     os.chdir(folder_abs_path)
     for item in os.listdir('.'):
-        if item.endswith("txt"):
+        if item.endswith("txt") or item.contains(".ico") or item.contains(".jpg"):
             print(f"Skipping text file {item}")
             continue
         elif os.path.isfile(item):
