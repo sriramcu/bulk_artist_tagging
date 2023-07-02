@@ -24,10 +24,9 @@ def index_2d(myList, v):
 current_artist = ""  # based on current subfolder, not existing artist tag
 # If shorten_song_title is True then remove artist names and leading numbers, spaces and hyphens from the title of a song
 def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_title=True):
-
     os.chdir(folder_abs_path)
     for item in os.listdir('.'):
-        if item.endswith("txt") or item.contains(".ico") or item.contains(".jpg"):
+        if item.endswith("txt") or ".ico" in item or ".jpg" in item:
             print(f"Skipping text file {item}")
             continue
         elif os.path.isfile(item):
@@ -42,7 +41,6 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_
             except mutagen.id3.ID3NoHeaderError:
                 audio = mutagen.File(item, easy=True)
                 audio.add_tags()                
-
             audio["artist"] = current_artist
             audio.save()
             global tagged_count
