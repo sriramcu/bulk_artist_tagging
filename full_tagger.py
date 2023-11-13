@@ -11,6 +11,7 @@ datafile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "genres.csv"
 csv_data = list(csv.reader(open(datafile)))
 tagged_count = 0
 last_processed_item = ""
+untagged_artists = []
 
 def index_2d(myList, v):
     # Finds index of element whose value is v in a 2d list myList, all comparisons are case insensitive; leading/trailing spaces stripped
@@ -39,8 +40,11 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_
             try:
                 audio = EasyID3(item)
             except mutagen.id3.ID3NoHeaderError:
+                print("Mutagen ID3 error encountered. Trying with mutagen.file")
                 audio = mutagen.File(item, easy=True)
-                audio.add_tags()                
+                audio.add_tags()  
+            else:
+                pass             
             audio["artist"] = current_artist
             audio.save()
             global tagged_count
@@ -50,6 +54,7 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_
                 genre_2d_index = index_2d(csv_data, current_artist)
                 if genre_2d_index == None:
                     warnings.warn(f"Genre for artist '{current_artist}' not found in the csv file, leaving genre tag unchanged")
+                    untagged_artists.append(current_artist)
                     continue
                 genre_index = genre_2d_index[0]
                 genre = csv_data[genre_index][0]
@@ -129,9 +134,9 @@ if __name__ == "__main__":
     start_time = time.time()
     try:
         main()
-    except Exception:
+    except Exception as e:
         print(f"Error occurred while processing {last_processed_item}")
-
+        print(e)
         if os.name == "nt":
             # this is to handle exceptions concerning ID3 headers not being recognised in Windows
             from win10toast import ToastNotifier
@@ -146,7 +151,8 @@ if __name__ == "__main__":
 
     else:
         time_elapsed = time.time() - start_time
-        print(f"Time taken for songs tagging = {time_elapsed//60} minutes {round((time_elapsed%60)/60,2)} seconds")
+        print(f"Time taken for songs tagging = {time_elapsed//60} minutes {round(time_elapsed%60, 2)} seconds")
+        print(f"The following artists haven't been tagged with genre = {set(untagged_artists)}")
 
 
 
