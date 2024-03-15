@@ -14,7 +14,7 @@ csv_data = list(csv.reader(open(datafile)))
 tagged_count = 0
 last_processed_item = ""
 untagged_artists = []
-
+untagged_songs = []
 
 def save_audio(audio, item):
     try:
@@ -22,6 +22,7 @@ def save_audio(audio, item):
     except Exception as e1:
         print(f"Unable to tag song {item}")
         print(e1)
+        untagged_songs.append(item)
         return False
     else:
         return True
@@ -50,9 +51,9 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_
             # os.system(cmd)
             os.chmod(item, 0o777)
             if ".flac" in item:
-                try:
+                old_item = item
+                try:                    
                     flac_audio = AudioSegment.from_file(item, format="flac")
-                    old_item = item
                     item = item[:-5] + ".mp3"
                     flac_audio.export(item, format="mp3")
                     print(f"Deleting {old_item}")
@@ -60,6 +61,7 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_
                 except Exception as e3:
                     print(e3)
                     print("Unable to convert flac to mp3, skipping")
+                    untagged_songs.append(old_item)
                     continue
                     
                 
@@ -69,10 +71,10 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_
                 audio = EasyID3(item)
             except mutagen.id3.ID3NoHeaderError:
                 print("Mutagen ID3 error encountered. Trying with mutagen.file")
+                untagged_songs.append(old_item)
                 audio = mutagen.File(item, easy=True)
                 audio.add_tags()  
-            else:
-                pass
+
             audio["artist"] = current_artist
             if not save_audio(audio, item):
                 continue
@@ -166,7 +168,7 @@ if __name__ == "__main__":
     try:
         main()
     except Exception as e:
-        print(f"Error occurred while processing {last_processed_item}")
+        print(f"[Unfinished Program] Error occurred while processing {last_processed_item}")
         print(e)
         traceback.print_stack()
         if os.name == "nt":
@@ -186,6 +188,8 @@ if __name__ == "__main__":
         print(f"Time taken for songs tagging = {time_elapsed//60} minutes {round(time_elapsed%60, 2)} seconds")
         if len(untagged_artists):
             print(f"The following artists haven't been tagged with genre = {set(untagged_artists)}")
+        if len(untagged_songs):
+            print("The following songs could not be tagged due to mutagen errors: ", untagged_songs)
 
 
 
