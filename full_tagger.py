@@ -6,6 +6,8 @@ import argparse
 import warnings
 import mutagen
 from mutagen.easyid3 import EasyID3
+import traceback
+from pydub import AudioSegment
 
 datafile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "genres.csv")
 csv_data = list(csv.reader(open(datafile)))
@@ -13,6 +15,17 @@ tagged_count = 0
 last_processed_item = ""
 untagged_artists = []
 
+
+def save_audio(audio, item):
+    try:
+        audio.save()
+    except Exception as e1:
+        print(f"Unable to tag song {item}")
+        print(e1)
+        return False
+    else:
+        return True
+    
 def index_2d(myList, v):
     # Finds index of element whose value is v in a 2d list myList, all comparisons are case insensitive; leading/trailing spaces stripped
     vlower = v.lower().strip()
@@ -27,14 +40,29 @@ current_artist = ""  # based on current subfolder, not existing artist tag
 def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_title=True):
     os.chdir(folder_abs_path)
     for item in os.listdir('.'):
-        if item.endswith("txt") or ".ico" in item or ".jpg" in item:
-            print(f"Skipping text file {item}")
+        if any([x in item.lower() for x in [".txt", ".ico", ".jpg", ".nfo",".f1 lac",".m3u",".png", ".pdf"]]):
+            print(f"Skipping file {item}")
             continue
         elif os.path.isfile(item):
             # item is in current working directory, so no need to determine the absolute path
             # cmd = f'mid3v2 -a "{current_artist}" "{item}"'
             # print(cmd)
             # os.system(cmd)
+            os.chmod(item, 0o777)
+            if ".flac" in item:
+                try:
+                    flac_audio = AudioSegment.from_file(item, format="flac")
+                    old_item = item
+                    item = item[:-5] + ".mp3"
+                    flac_audio.export(item, format="mp3")
+                    print(f"Deleting {old_item}")
+                    os.remove(old_item)
+                except Exception as e3:
+                    print(e3)
+                    print("Unable to convert flac to mp3, skipping")
+                    continue
+                    
+                
             global last_processed_item
             last_processed_item = item
             try:
@@ -44,9 +72,10 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_
                 audio = mutagen.File(item, easy=True)
                 audio.add_tags()  
             else:
-                pass             
+                pass
             audio["artist"] = current_artist
-            audio.save()
+            if not save_audio(audio, item):
+                continue
             global tagged_count
             tagged_count += 1
             print(f"{tagged_count}. {item} tagged")
@@ -63,7 +92,8 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_
                 # os.system(cmd)
                 audio = EasyID3(item)
                 audio["genre"] = genre
-                audio.save()
+                if not save_audio(audio, item):
+                    continue
             
             if shorten_song_title:
                 newname = re.sub(current_artist,"",item,count=0,flags=re.I).strip()
@@ -94,7 +124,8 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_
                 # os.system(cmd)
                 audio = EasyID3(item)
                 audio["title"] = newname_title
-                audio.save()
+                if not save_audio(audio, item):
+                    continue
                 os.rename(item,newname)
 
 
@@ -137,6 +168,7 @@ if __name__ == "__main__":
     except Exception as e:
         print(f"Error occurred while processing {last_processed_item}")
         print(e)
+        traceback.print_stack()
         if os.name == "nt":
             # this is to handle exceptions concerning ID3 headers not being recognised in Windows
             from win10toast import ToastNotifier
@@ -152,7 +184,8 @@ if __name__ == "__main__":
     else:
         time_elapsed = time.time() - start_time
         print(f"Time taken for songs tagging = {time_elapsed//60} minutes {round(time_elapsed%60, 2)} seconds")
-        print(f"The following artists haven't been tagged with genre = {set(untagged_artists)}")
+        if len(untagged_artists):
+            print(f"The following artists haven't been tagged with genre = {set(untagged_artists)}")
 
 
 
