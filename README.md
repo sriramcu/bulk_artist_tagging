@@ -26,11 +26,11 @@ SHORTEN_SONG_TITLE]`
 
 ### Options
 * -d, --root_music_directory : Path to the root directory containing music files (required)
-* -tg, --tag_genres: Tag genres (0: disabled, 1: enabled) ,(default: 1)
+* -tg, --tag_genres: Tag genres (0: disabled, 1: enabled) (default: 1)
 * -sh, --shorten_song_title: Shorten song titles (0: disabled, 1: enabled) (default: 0)
 * -h, --help: Show this help message and exit
 
-### Detailed Explanations
+### Options Description
 
 1. The boolean argument tag_genres indicates whether you want to tag your music with 
    the genres described in `genres.csv`. If set to 0, genre tags will not be modified 
