@@ -9,8 +9,13 @@ from mutagen.easyid3 import EasyID3
 import traceback
 from pydub import AudioSegment
 
-datafile = os.path.join(os.path.dirname(os.path.abspath(__file__)), "genres.csv")
-csv_data = list(csv.reader(open(datafile)))
+genres_csv_filename = "genres.csv"
+datafile = os.path.join(os.path.dirname(os.path.abspath(__file__)), genres_csv_filename)
+csv_data = []
+try:
+    csv_data = list(csv.reader(open(datafile)))
+except FileNotFoundError:
+    print(f"{datafile} not found. Genre tagging will be skipped.")
 tagged_count = 0
 last_processed_item = ""
 untagged_artists = []
@@ -81,7 +86,7 @@ def tag_full_folder(folder_abs_path, original_dir,tag_genres=True, shorten_song_
             global tagged_count
             tagged_count += 1
             print(f"{tagged_count}. {item} tagged")
-            if tag_genres:
+            if tag_genres and len(csv_data) > 0:
                 genre_2d_index = index_2d(csv_data, current_artist)
                 if genre_2d_index == None:
                     warnings.warn(f"Genre for artist '{current_artist}' not found in the csv file, leaving genre tag unchanged")
