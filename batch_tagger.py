@@ -96,15 +96,15 @@ def tag_full_folder(csv_data, current_artist, folder_abs_path, tag_genres, short
                     song_name_copy = song_name_copy.replace(current_artist, "")
                     song_name_copy = song_name_copy.replace(".", " ")
                     song_name_copy = song_name_copy.replace("-", " ")
-                    song_name_copy = ''.join(i for i in song_name_copy if not i.isdigit())
                     song_name_copy = song_name_copy.strip()
                     newname = f"{song_name_copy}.{extension}"
                     audio = EasyID3(item_path)
                     audio["title"] = song_name_copy
                     if not save_audio(audio, item_path):
                         continue
-                    os.rename(item_path, newname)
-
+                    new_item_path = os.path.join(os.path.dirname(item_path), newname)
+                    if new_item_path != item_path:
+                        os.rename(item_path, new_item_path)
 
             elif os.path.isdir(item_path):
                 tag_full_folder(csv_data, current_artist, os.path.join(folder_abs_path, item_path),
@@ -112,7 +112,8 @@ def tag_full_folder(csv_data, current_artist, folder_abs_path, tag_genres, short
                                 shorten_song_title)
 
         except Exception as e:
-            print("Unable to tag song " + item_path)
+            if os.path.isfile(item_path):
+                print("Unable to tag song " + item_path)
             raise e
 
 
@@ -124,6 +125,7 @@ def batch_tagger(root_dir_path, tag_genres, shorten_song_title):
     except FileNotFoundError:
         print(f"{datafile} not found. Genre tagging will be skipped.")
 
+    initial_stats = get_directory_stats(root_dir_path)
     list_of_artist_folders = os.listdir(root_dir_path)
     for artist in list_of_artist_folders:
         if not os.path.isdir(os.path.join(root_dir_path, artist)):
@@ -131,6 +133,25 @@ def batch_tagger(root_dir_path, tag_genres, shorten_song_title):
             continue
         tag_full_folder(csv_data, artist, os.path.abspath(os.path.join(root_dir_path, artist)), tag_genres,
                         shorten_song_title)
+    final_stats = get_directory_stats(root_dir_path)
+
+    print(f"Initial directory contents (count, size in bytes): {initial_stats}")
+    print(f"Final directory contents (count, size in bytes): {final_stats}")
+
+
+def get_directory_stats(path):
+    total_size = 0
+    file_count = 0
+
+    for dirpath, dirnames, filenames in os.walk(path):
+        for f in filenames:
+            fp = os.path.join(dirpath, f)
+            # Skip if it's a broken symlink
+            if os.path.exists(fp):
+                total_size += os.path.getsize(fp)
+                file_count += 1
+
+    return file_count, total_size
 
 
 def main():

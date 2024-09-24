@@ -38,8 +38,8 @@ SHORTEN_SONG_TITLE]`
 2. The `shorten_song_titles` parameter can be set to 1 if you wish to clean up or 
    sanitize the names 
    of song titles, which may appear to be a bit messy. This will remove the Artist's 
-name from the song as well as stripping leading dashes, dots, underscores and numbers 
-from the song's title. The song's title tag and the name of the file will be modified 
+name from the song as well as removing dashes and dots from the song's title. The 
+   song's title tag and the name of the file will be modified 
 accordingly. There is no provision to undo these changes once done. By default, this 
    property is disabled.
 
