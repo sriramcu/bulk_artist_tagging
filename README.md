@@ -32,7 +32,7 @@ SHORTEN_SONG_TITLE]`
 
 ### Options Description
 
-1. The boolean argument tag_genres indicates whether you want to tag your music with 
+1. The boolean argument `tag_genres` indicates whether you want to tag your music with 
    the genres described in `genres.csv`. If set to 0, genre tags will not be modified 
    or processed.
 2. The `shorten_song_titles` parameter can be set to 1 if you wish to clean up or 
@@ -42,6 +42,21 @@ name from the song as well as stripping leading dashes, dots, underscores and nu
 from the song's title. The song's title tag and the name of the file will be modified 
 accordingly. There is no provision to undo these changes once done. By default, this 
    property is disabled.
+
+## Note
+
+1. .flac files will be converted to .mp3 before tagging.
+
+## Miscellaneous Information
+
+Run the following commands in an interactive python shell to get the ID3 tags of an 
+individual song:
+```
+from mutagen.easyid3 import EasyID3
+from mutagen.mp3 import MP3
+audio = MP3("myfile.mp3", ID3=EasyID3)
+audio
+```
 
  
 
